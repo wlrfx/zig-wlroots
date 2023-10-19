@@ -65,8 +65,8 @@ pub fn build(b: *std.Build) void {
     wlr_test.addModule("pixman", pixman);
     wlr_test.linkSystemLibrary("pixman-1");
 
-    wlr_test.linkSystemLibrary("wlroots");
     wlr_test.linkSystemLibrary("scenefx");
+    wlr_test.linkSystemLibrary("wlroots");
 
     const test_step = b.step("test", "Run the tests");
     test_step.dependOn(&wlr_test.step);

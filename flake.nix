@@ -24,6 +24,7 @@
               pixman
               stdenv
               wlroots
+	       (callPackage ./scenefx.nix { })
               wayland
               wayland-protocols
               pkg-config

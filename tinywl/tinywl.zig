@@ -211,7 +211,11 @@ const Server = struct {
             const scene_surface = wlr.SceneSurface.fromBuffer(scene_buffer) orelse return null;
 
             var it: ?*wlr.SceneNode = node;
-            while (it) |n| : (it = n.parent) {
+            while (it) |n| : (it = blk: {
+                if (n.parent) |parent| {
+                    break :blk &parent.node;
+                }
+            }) {
                 if (@as(?*View, @ptrFromInt(n.data))) |view| {
                     return ViewAtResult{
                         .view = view,
@@ -419,7 +423,7 @@ const Output = struct {
         const output = @fieldParentPtr(Output, "frame", listener);
 
         const scene_output = output.server.scene.getSceneOutput(output.wlr_output).?;
-        configure_node_decoration(output, &scene_output.scene.tree.node);
+        configure_node_decoration(&scene_output.scene.tree.node);
 
         _ = scene_output.commit();
 
@@ -428,7 +432,7 @@ const Output = struct {
         scene_output.sendFrameDone(&now);
     }
 
-    fn configure_node_decoration(output: *Output, node: *wlr.SceneNode) void {
+    fn configure_node_decoration(node: *wlr.SceneNode) void {
         if (!node.enabled) {
             return;
         }
@@ -456,11 +460,11 @@ const Output = struct {
                 }
             }
         } else if (node.type == .tree) {
-            const tree = @fieldParentPtr(wlr.SceneTree, "node", node);
+            const tree = node.parent orelse return;
             var it = tree.children.safeIterator(.forward);
 
             while (it.next()) |scene_node| {
-                configure_node_decoration(output, scene_node);
+                configure_node_decoration(scene_node);
             }
         }
     }
